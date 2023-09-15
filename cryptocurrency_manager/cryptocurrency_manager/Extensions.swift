@@ -23,20 +23,16 @@ extension URL {
     }
     
     func appendingQueryParameters(patch: String, parameters: [String: String]? = nil) -> URL? {
-        var urlComponents = URLComponents(url: self, resolvingAgainstBaseURL: true)
+        guard var urlComponents = URLComponents(url: self, resolvingAgainstBaseURL: true) else {return nil}
         
-        guard urlComponents != nil else {
-            return nil
+        guard let parameters = parameters else {
+            guard let url = urlComponents.url else {return nil}
+            return url.appendingPathComponent(patch)
         }
         
-        urlComponents!.queryItems = (urlComponents!.queryItems ?? []) +
-            (parameters?.map { URLQueryItem(name: $0, value: $1) } ?? [])
-        
-        let trimmedPatch = patch.hasSuffix("/") ? String(patch.dropLast()) : patch
-        
-        urlComponents!.path = (urlComponents!.path + "/" + trimmedPatch).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        
-        return urlComponents!.url
+        urlComponents.queryItems = (urlComponents.queryItems ?? []) + parameters.map { URLQueryItem(name: $0, value: $1) }
+        guard let url = urlComponents.url else { return nil }
+        return url.appendingPathComponent(patch)
     }
     
 }

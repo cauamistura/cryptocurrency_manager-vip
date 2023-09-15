@@ -15,7 +15,7 @@ protocol CoinsStoreProtocol: GenericStoreProtocol {
         totalPerPage: Int,
         page: Int,
         percentagePrice: String,
-        completion: @escaping completion<CoinModel?>
+        completion: @escaping completion<[CoinModel]?>
     )
 
     func fetchHistorical(
@@ -40,15 +40,18 @@ protocol CoinsStoreProtocol: GenericStoreProtocol {
 }
 
 class CoinsStore: GenericStoreRequest, CoinsStoreProtocol {
-    func fetchListCoins(by vsCurrency: String, with cryptocurrency: [String]?, orderBy order: String, totalPerPage: Int, page: Int, percentagePrice: String, completion: @escaping completion<CoinModel?>) {
+    func fetchListCoins(by vsCurrency: String, with cryptocurrency: [String]?, orderBy order: String, totalPerPage: Int, page: Int, percentagePrice: String, completion: @escaping completion<[CoinModel]?>) {
         do {
-            guard let url = try CoinsRouter.coinsMarkets(currency: vsCurrency,
-                                                         cryptoCurrency: cryptocurrency,
-                                                         order: order,
-                                                         parPage: totalPerPage,
-                                                         page: page,
-                                                         percentage: percentagePrice).asURLRequest() else {return completion(nil, error)}
-            request(url: url, completion: completion)
+           // guard let url = try CoinsRouter.coinsMarkets(currency: vsCurrency,
+           //                                              cryptoCurrency: cryptocurrency,
+           //                                              order: order,
+           //                                              parPage: totalPerPage,
+           //                                              page: page,
+           //                                              percentage: percentagePrice).asURLRequest() else {return completion(nil, error)}
+            
+            if  let url = URL(string: "https://api.coingecko.com/api/v3/coins/markets?order=market_cap_desc&page=1&sparkline=false&vs_currency=brl&price_change_percentage=1h&per_page=10") {
+                request(url: url, completion: completion)
+            }
         } catch let error {
             completion(nil, error)
         }

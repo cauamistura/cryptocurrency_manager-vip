@@ -33,6 +33,7 @@ class GenericStoreRequest: GenericStoreProtocol {
                 completion(object, nil)
             } catch {
                 completion(nil, error)
+                print(error)
             }
         }
 
