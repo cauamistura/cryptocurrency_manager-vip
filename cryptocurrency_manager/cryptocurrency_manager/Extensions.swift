@@ -34,5 +34,10 @@ extension URL {
         guard let url = urlComponents.url else { return nil }
         return url.appendingPathComponent(patch)
     }
-    
+}
+
+extension Error {
+    var errorCode: Int? {
+        return (self as NSError).code
+    }
 }
