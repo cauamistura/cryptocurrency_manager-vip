@@ -12,30 +12,84 @@
 
 import UIKit
 
-protocol CoinsListBusinessLogic
-{
-  func doSomething(request: CoinsList.Something.Request)
+protocol CoinsListBusinessLogic {
+    func doFetchGlobalValues(request: CoinsList.FetchGlobalValues.Request)
+    func doFetchListCoins(request: CoinsList.FetchListCoin.Request)
 }
 
-protocol CoinsListDataStore
-{
-  //var name: String { get set }
-}
+protocol CoinsListDataStore {}
 
-class CoinsListInteractor: CoinsListBusinessLogic, CoinsListDataStore
-{
-  var presenter: CoinsListPresentationLogic?
-  var worker: CoinsListWorker?
-  //var name: String = ""
-  
-  // MARK: Do something
-  
-  func doSomething(request: CoinsList.Something.Request)
-  {
-    worker = CoinsListWorker()
-    worker?.doSomeWork()
+class CoinsListInteractor: CoinsListBusinessLogic, CoinsListDataStore {
+    var presenter: CoinsListPresentationLogic?
+    var globalValuesWorker: GlobalValuesWorker?
+    var coinListWorker: CoinsListWorker?
     
-    let response = CoinsList.Something.Response()
-    presenter?.presentSomething(response: response)
-  }
+    init(presenter: CoinsListPresentationLogic? = CoinsListPresenter(), globalValuesWorker: GlobalValuesWorker? = GlobalValuesWorker(), coinListWorker: CoinsListWorker? = CoinsListWorker()) {
+        self.presenter = presenter
+        self.globalValuesWorker = globalValuesWorker
+        self.coinListWorker = coinListWorker
+    }
+    
+    func doFetchGlobalValues(request: CoinsList.FetchGlobalValues.Request) {
+        globalValuesWorker?.doFeachGlobalValues(completion: {result in
+            switch result {
+            case .success(let globalModel): self.createGlobalValuesResponse(baseCoin: request.baseCoin, globalModel: globalModel)
+            case .failure(let error):
+            }
+        })
+    }
+    
+    func doFetchListCoins(request: CoinsList.FetchListCoin.Request) {
+        coinListWorker?.doFechListCoins(baseCoint: request.baseCoin,
+                                        orderBy: request.orderBy,
+                                        top: request.top,
+                                        percentagePrice: request.pricePercentage,
+                                        completion: {result in {
+            switch result {
+            case .success(let listCoinModel): self.createListCoinResponse(request: request, listCoins: listCoinModel)
+            case .failure(let error):
+            }
+        }})
+    }
+        
+    private func createGlobalValuesResponse(baseCoin: String, globalModel: GlobalModel?) {
+        if let globalModel {
+            let totalMarketCap = globalModel.data.totalMarketCap.filter { $0.key == baseCoin }
+            let totalVolume = globalModel.data.totalVolume.filter { $0.key == baseCoin }
+            
+            let response = CoinsList.FetchGlobalValues.Response(baseCoin: baseCoin, totalMarketCap: totalMarketCap, totalVolume: totalVolume)
+        } else {
+            
+        }
+    }
+    
+    private func createListCoinResponse(request: CoinsList.FetchListCoin.Request, listCoins: [CoinModel]?) {
+        func priceChangedPercentage(pricePercentage: String, coin: CoinModel) -> Double {
+            if pricePercentage == "1h" {
+                return coin.priceChangedPorcentage1H ?? 0.0
+            } else if pricePercentage == "24h" {
+                return coin.priceChangedPorcentage24H ?? 0.0
+            } else if pricePercentage == "7d" {
+                return coin.priceChangedPorcentage7D ?? 0.0
+            } else {
+                return coin.priceChangedPorcentage30D ?? 0.0
+            }
+        }
+        
+        if let listCoins {
+            let response = listCoins.map { coin in
+                return CoinsList.FetchListCoin.Response(baseCoin: request.baseCoin,
+                                                        id: coin.id,
+                                                        symbol: coin.symbol,
+                                                        name: coin.name,
+                                                        image: coin.image,
+                                                        currentPrice: coin.currentPrice ?? 0.0,
+                                                        marketCap: coin.marketCap ?? 0.0,
+                                                        marketCapRank: coin.marketCapRank,
+                                                        marketCapChangePercentage: priceChangedPercentage(pricePercentage: request.pricePercentage, coin: coin))
+            }
+        } else {
+            
+        }
+    }
 }

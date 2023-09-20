@@ -12,20 +12,46 @@
 
 import UIKit
 
-protocol CoinsListPresentationLogic
-{
-  func presentSomething(response: CoinsList.Something.Response)
+protocol CoinsListPresentationLogic {
+    func presentGlobalValues(response: CoinsList.FetchGlobalValues.Response)
+    func presentListCoins(response: CoinsList.FetchListCoin.Response)
+    func presentError(error: CryptoCurrenciesError)
 }
 
-class CoinsListPresenter: CoinsListPresentationLogic
-{
-  weak var viewController: CoinsListDisplayLogic?
-  
-  // MARK: Do something
-  
-  func presentSomething(response: CoinsList.Something.Response)
-  {
-    let viewModel = CoinsList.Something.ViewModel()
-    viewController?.displaySomething(viewModel: viewModel)
-  }
+class CoinsListPresenter: CoinsListPresentationLogic {
+    weak var viewController: CoinsListDisplayLogic?
+    
+    func presentGlobalValues(response: CoinsList.FetchGlobalValues.Response) {
+        var globalValues: [CoinsList.FetchGlobalValues.ViewModel.GlobalValues] = []
+        
+        for (_, value) in response.totalMarketCap {
+            globalValues.append(
+                CoinsList.FetchGlobalValues.ViewModel.GlobalValues (title: "Capitalizacao de mercado global", value: value.toCurrency())
+            )
+        }
+        
+        for (_, value) in response.totalVolume {
+            globalValues.append(
+                CoinsList.FetchGlobalValues.ViewModel.GlobalValues (title: "Volume em 24 horas", value: value.toCurrency())
+            )
+        }
+        
+        let viewModel = CoinsList.FetchGlobalValues.ViewModel(globalValues: globalValues)
+    }
+    
+    func presentListCoins(response: CoinsList.FetchListCoin.Response) {
+        <#code#>
+    }
+    
+    func presentError(error: CryptoCurrenciesError) {
+        <#code#>
+    }
+}
+
+extension Double {
+    func toCurrency() -> String {
+        let numberFormat = NumberFormatter()
+        numberFormat.numberStyle = .currency
+        numberFormat.locale = Locale(identifier: "pt_BR")
+    }
 }

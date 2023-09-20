@@ -21,7 +21,7 @@ struct CoinModel: Codable {
     let atl, atlChangePercentage: Double
     let atlDate: String
     let lastUpdated: String
-    let priceChangedPorcentage1H, priceChangedPorcentage7D, priceChangedPorcentage30D: Double?
+    let priceChangedPorcentage1H, priceChangedPorcentage7D, priceChangedPorcentage30D, priceChangedPorcentage24H: Double?
 
     enum CodingKeys: String, CodingKey {
         case id, symbol, name, image
@@ -49,5 +49,6 @@ struct CoinModel: Codable {
         case priceChangedPorcentage1H = "price_change_porcentage_1h_in_currency"
         case priceChangedPorcentage7D = "price_change_porcentage_7d_in_currency"
         case priceChangedPorcentage30D = "price_change_porcentage_30d_in_currency"
+        case priceChangedPorcentage24H = "price_change_porcentage_24h_in_currency"
     }
 }
