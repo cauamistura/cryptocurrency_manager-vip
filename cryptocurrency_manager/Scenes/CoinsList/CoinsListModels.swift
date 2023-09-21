@@ -45,8 +45,8 @@ enum CoinsList {
                 symbol,
                 name: String
             let image: String
-            let currentPrice,
-                marketCap: Double
+            let currentPrice: Double
+            let marketCap: Double?
             let marketCapRank: Int?
             let marketCapChangePercentage: Double
         }
@@ -58,7 +58,7 @@ enum CoinsList {
                 let iconURL: String
                 let symbol: String
                 let price: String
-                let priceChangedPercentage: String
+                let priceChangedPercentage: String 
                 let marketCapitalization: String
             }
             let coins: [Coin]

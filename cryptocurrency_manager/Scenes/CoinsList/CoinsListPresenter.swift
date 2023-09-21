@@ -14,7 +14,7 @@ import UIKit
 
 protocol CoinsListPresentationLogic {
     func presentGlobalValues(response: CoinsList.FetchGlobalValues.Response)
-    func presentListCoins(response: CoinsList.FetchListCoin.Response)
+    func presentListCoins(response: [CoinsList.FetchListCoin.Response])
     func presentError(error: CryptoCurrenciesError)
 }
 
@@ -37,14 +37,36 @@ class CoinsListPresenter: CoinsListPresentationLogic {
         }
         
         let viewModel = CoinsList.FetchGlobalValues.ViewModel(globalValues: globalValues)
+        
+        viewController?.displayGlobalValues(viewModel: viewModel)
     }
     
-    func presentListCoins(response: CoinsList.FetchListCoin.Response) {
-        <#code#>
+    func presentListCoins(response: [CoinsList.FetchListCoin.Response]) {
+        let coins = response.map { response in
+            var rank = "-"
+            
+            if let marketCapRank = response.marketCap {
+                rank = "\(marketCapRank)"
+            }
+            
+            return CoinsList.FetchListCoin.ViewModel.Coin(id: response.id,
+                                                          name: response.name,
+                                                          rank: rank,
+                                                          iconURL: response.image,
+                                                          symbol: response.symbol.uppercased(),
+                                                          price: response.currentPrice.toCurrency(),
+                                                          priceChangedPercentage: response.marketCapChangePercentage.toPercentage(),
+                                                          marketCapitalization: response.marketCap?.toCurrency() ?? "\u{2193} 0.0%"
+            )
+        }
+        
+        let viewModel = CoinsList.FetchListCoin.ViewModel(coins: coins)
+        
+        viewController?.displayListCoins(viewModel: viewModel)
     }
     
     func presentError(error: CryptoCurrenciesError) {
-        <#code#>
+        viewController?.displayError(erro: error.errorDescription)
     }
 }
 
@@ -53,5 +75,21 @@ extension Double {
         let numberFormat = NumberFormatter()
         numberFormat.numberStyle = .currency
         numberFormat.locale = Locale(identifier: "pt_BR")
+        
+        guard let formattedCurrency = numberFormat.string(from: self as NSNumber) else {
+            return "N/A"
+        }
+        
+        return formattedCurrency
+    }
+    
+    func toPercentage() -> String {
+        let value = String(format: "%.1f", self).replacingOccurrences(of: "-", with: "")
+        
+        if self.sign == .minus {
+            return "\u{2193} \(value)%"
+        } else {
+            return "\u{2191} \(value)%"
+        }
     }
 }
