@@ -5,7 +5,7 @@
 //  Created by Caua Mistura on 11/09/23.
 //
 
-import Foundation
+import UIKit
 
 extension URL {
     
@@ -39,5 +39,20 @@ extension URL {
 extension Error {
     var errorCode: Int? {
         return (self as NSError).code
+    }
+}
+
+extension UIImageView {
+    func loadImage(from url: String) {
+        guard let url = URL(string: url) else {return}
+        
+        DispatchQueue.global().async {
+            do {
+                let data = try Data(contentsOf: url)
+                DispatchQueue.main.async {
+                    self.image = UIImage(data: data)
+                }
+            } catch {}
+        }
     }
 }

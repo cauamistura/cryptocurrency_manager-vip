@@ -19,6 +19,24 @@ protocol CoinsListDisplayLogic: AnyObject {
 }
 
 class CoinsListViewController: UIViewController {
+    @IBOutlet weak var gloobalCollectionView: UICollectionView! {
+        didSet {
+            gloobalCollectionView.dataSource = self
+        }
+    }
+    @IBOutlet weak var filterCollectionView: UICollectionView!{
+        didSet {
+            filterCollectionView.delegate = self
+            filterCollectionView.dataSource = self
+        }
+    }
+    @IBOutlet weak var listCoinsTableView: UITableView!{
+        didSet {
+            listCoinsTableView.delegate = self
+            listCoinsTableView.dataSource = self
+        }
+    }
+    
     private var globalViewModel: CoinsList.FetchGlobalValues.ViewModel?
     private var listCoinsViewMode: CoinsList.FetchListCoin.ViewModel?
     
@@ -78,13 +96,77 @@ class CoinsListViewController: UIViewController {
 extension CoinsListViewController: CoinsListDisplayLogic {
     func displayGlobalValues(viewModel: CoinsList.FetchGlobalValues.ViewModel) {
         globalViewModel = viewModel
+        DispatchQueue.main.async {
+            self.gloobalCollectionView.reloadData()
+        }
     }
     
     func displayListCoins(viewModel: CoinsList.FetchListCoin.ViewModel) {
         listCoinsViewMode = viewModel
+        DispatchQueue.main.async {
+            self.listCoinsTableView.reloadData()
+        }
     }
     
     func displayError(erro: String) {
         print(erro)
     }
 }
+
+extension CoinsListViewController: UICollectionViewDelegate {}
+
+extension CoinsListViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        if collectionView ==  gloobalCollectionView {
+            return globalViewModel?.globalValues.count ?? 0
+        }
+        return 4
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if collectionView == gloobalCollectionView {
+            guard let viewModel = globalViewModel else {return UICollectionViewCell()}
+            
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GlobalValuesCollectionViewCell.indentifier, for: indexPath) as? GlobalValuesCollectionViewCell {
+                let globalValues = viewModel.globalValues[indexPath.row]
+                cell.titleLabel.text = globalValues.title
+                cell.valueLabel.text = globalValues.value
+                
+                return cell
+            }
+        }
+        
+        if collectionView == filterCollectionView {
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilterCollectionViewCell.indentifier, for: indexPath) as? FilterCollectionViewCell {
+                return cell
+            }
+        }
+        
+        return UICollectionViewCell()
+    }
+}
+extension CoinsListViewController: UITableViewDelegate {}
+
+extension CoinsListViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return listCoinsViewMode?.coins.count ?? 0
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if let cell = tableView.dequeueReusableCell(withIdentifier: CoinViewTableViewCell.indentifier, for: indexPath) as? CoinViewTableViewCell {
+            guard let viewModel = listCoinsViewMode else {return UITableViewCell()}
+            
+            let coin = viewModel.coins[indexPath.row]
+            cell.hankLabel.text = coin.rank
+            cell.inconImage.loadImage(from: coin.iconURL)
+            cell.symbolLabel.text = coin.symbol
+            cell.marketCapLabel.text = coin.marketCapitalization
+            cell.percentageLabel.text = coin.priceChangedPercentage
+            cell.priceLabel.text = coin.price
+            
+            return cell
+        }
+        return UITableViewCell()
+    }
+}
+
